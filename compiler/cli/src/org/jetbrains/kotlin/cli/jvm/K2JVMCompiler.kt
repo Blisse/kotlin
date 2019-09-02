@@ -203,26 +203,7 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
         val pluginOptions = arguments.pluginOptions?.toMutableList() ?: ArrayList()
 
         if (!arguments.disableDefaultScriptingPlugin) {
-            val explicitOrLoadedScriptingPlugin =
-                pluginClasspaths.any { File(it).name.startsWith(PathUtil.KOTLIN_SCRIPTING_COMPILER_PLUGIN_NAME) } ||
-                        tryLoadScriptingPluginFromCurrentClassLoader(configuration)
-            // if scripting plugin is not enabled explicitly (probably from another path) and not in the classpath already,
-            // try to find and enable it implicitly
-            if (!explicitOrLoadedScriptingPlugin) {
-                val kotlinPaths = paths ?: PathUtil.kotlinPathsForCompiler
-                val libPath = kotlinPaths.libPath.takeIf { it.exists() && it.isDirectory } ?: File(".")
-                val (jars, missingJars) =
-                    PathUtil.KOTLIN_SCRIPTING_PLUGIN_CLASSPATH_JARS.mapNotNull { File(libPath, it) }.partition { it.exists() }
-                if (missingJars.isEmpty()) {
-                    pluginClasspaths = jars.map { it.canonicalPath } + pluginClasspaths
-                } else {
-                    val messageCollector = configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
-                    messageCollector.report(
-                        LOGGING,
-                        "Scripting plugin will not be loaded: not all required jars are present in the classpath (missing files: $missingJars)"
-                    )
-                }
-            }
+            pluginClasspaths = commonLoadPlugins(configuration, paths, pluginClasspaths)
             if (arguments.scriptTemplates?.isNotEmpty() == true) {
                 pluginOptions.add("plugin:kotlin.scripting:script-templates=${arguments.scriptTemplates!!.joinToString(",")}")
             }
@@ -237,20 +218,6 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
             pluginOptions.add("plugin:kotlin.scripting:disable=true")
         }
         return PluginCliParser.loadPluginsSafe(pluginClasspaths, pluginOptions, configuration)
-    }
-
-    private fun tryLoadScriptingPluginFromCurrentClassLoader(configuration: CompilerConfiguration): Boolean = try {
-        val pluginRegistrarClass = PluginCliParser::class.java.classLoader.loadClass(
-            "org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar"
-        )
-        val pluginRegistrar = pluginRegistrarClass.newInstance() as? ComponentRegistrar
-        if (pluginRegistrar != null) {
-            configuration.add(ComponentRegistrar.PLUGIN_COMPONENT_REGISTRARS, pluginRegistrar)
-            true
-        } else false
-    } catch (_: Throwable) {
-        // TODO: add finer error processing and logging
-        false
     }
 
     private fun createCoreEnvironment(
