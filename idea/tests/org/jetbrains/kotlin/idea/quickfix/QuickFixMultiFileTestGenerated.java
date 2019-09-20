@@ -2036,6 +2036,11 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
                     runTest("idea/testData/quickfix/createFromUsage/createFunction/fromJava/companionMember.before.Main.java");
                 }
 
+                @TestMetadata("nullType.before.Main.java")
+                public void testNullType() throws Exception {
+                    runTest("idea/testData/quickfix/createFromUsage/createFunction/fromJava/nullType.before.Main.java");
+                }
+
                 @TestMetadata("topLevel.before.Main.java")
                 public void testTopLevel() throws Exception {
                     runTest("idea/testData/quickfix/createFromUsage/createFunction/fromJava/topLevel.before.Main.java");
