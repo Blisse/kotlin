@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.TypeProjection
@@ -142,6 +143,11 @@ abstract class DescriptorRenderer {
 
         @JvmField
         val FQ_NAMES_IN_TYPES: DescriptorRenderer = withOptions {
+            modifiers = DescriptorRendererModifier.DEFAULTS
+        }
+
+        @JvmField
+        val FQ_NAMES_IN_TYPES_WITH_ANNOTATIONS: DescriptorRenderer = withOptions {
             modifiers = DescriptorRendererModifier.ALL
         }
 

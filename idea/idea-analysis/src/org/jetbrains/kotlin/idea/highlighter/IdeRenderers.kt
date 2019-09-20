@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.diagnostics.rendering.*
 import org.jetbrains.kotlin.idea.highlighter.renderersUtil.renderResolvedCall
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.renderer.DescriptorRendererModifier
 import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.calls.inference.InferenceErrorData
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -36,7 +37,10 @@ object IdeRenderers {
         descriptors.joinToString("") { "<li>${HTML.render(it, context)}</li>" }
     }
 
-    @JvmField val HTML_RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.HTML.withOptions { parameterNamesInFunctionalTypes = false })
+    @JvmField val HTML_RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.HTML.withOptions {
+        parameterNamesInFunctionalTypes = false
+        modifiers =  DescriptorRendererModifier.DEFAULTS
+    })
 
     @JvmField val HTML_NONE_APPLICABLE_CALLS = Renderer {
         calls: Collection<ResolvedCall<*>> ->
@@ -85,5 +89,10 @@ object IdeRenderers {
         Renderers.THROWABLE.render(throwable, context).replace("\n", "<br/>")
     }
 
-    @JvmField val HTML = DescriptorRenderer.HTML.asRenderer()
+    @JvmField val HTML = DescriptorRenderer.HTML.withOptions {
+        modifiers = DescriptorRendererModifier.DEFAULTS
+    }.asRenderer()
+    @JvmField val HTML_WITH_ANNOTATIONS = DescriptorRenderer.HTML.withOptions {
+        modifiers = DescriptorRendererModifier.ALL
+    }.asRenderer()
 }
