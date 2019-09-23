@@ -18,7 +18,14 @@ class ScriptGenerator(declarationGenerator: DeclarationGenerator) : DeclarationG
     fun generateScriptDeclaration(ktScript: KtScript): IrDeclaration? {
         val descriptor = getOrFail(BindingContext.DECLARATION_TO_DESCRIPTOR, ktScript) as ScriptDescriptor
 
+        val existedScripts = context.symbolTable.listExistedScripts()
+
         return context.symbolTable.declareScript(descriptor).buildWithScope { irScript ->
+
+            // TODO: since script could reference instances of previous one their receivers have to be enlisted in its scope
+            // Remove this code once script is no longer represented by Class
+            existedScripts.forEach { context.symbolTable.introduceValueParameter(it.owner.thisReceiver) }
+
             val startOffset = ktScript.pureStartOffset
             val endOffset = ktScript.pureEndOffset
 
