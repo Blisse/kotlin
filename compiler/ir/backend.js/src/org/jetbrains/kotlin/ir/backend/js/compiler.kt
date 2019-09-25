@@ -85,7 +85,7 @@ fun compile(
     return transformer.generateModule(moduleFragment)
 }
 
-fun compileForRepl(
+fun generateJsCode(
     context: JsIrBackendContext,
     moduleFragment: IrModuleFragment,
     nameTables: NameTables

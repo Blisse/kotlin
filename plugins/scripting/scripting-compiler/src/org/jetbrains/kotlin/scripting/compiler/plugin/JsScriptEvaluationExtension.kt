@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.platform
 import org.jetbrains.kotlin.scripting.repl.js.CompiledToJsScript
 import org.jetbrains.kotlin.scripting.repl.js.JsScriptCompiler
+import org.jetbrains.kotlin.scripting.repl.js.JsScriptDependencyCompiler
 import org.jetbrains.kotlin.scripting.repl.js.JsScriptEvaluator
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.ScriptingHostConfiguration
@@ -77,13 +78,11 @@ class JsScriptEvaluationExtension : AbstractScriptEvaluationExtension() {
         scriptCompilationConfiguration: ScriptCompilationConfiguration,
         evaluationConfiguration: ScriptEvaluationConfiguration
     ) {
-        scriptEvaluator.invoke(
-            CompiledToJsScript(
-                scriptCompiler.scriptDependencyBinary,
-                scriptCompilationConfiguration
-            ),
-            evaluationConfiguration
-        )
+        // Load close-world dependencies into evaluating engine
+        val dependencyCompiler =
+            JsScriptDependencyCompiler(environment!!.configuration, scriptCompiler.nameTables, scriptCompiler.symbolTable)
+        val dependencyJsCode = dependencyCompiler.compile(scriptCompiler.dependencies)
+        scriptEvaluator.invoke(CompiledToJsScript(dependencyJsCode, scriptCompilationConfiguration), evaluationConfiguration)
     }
 
     override fun isAccepted(arguments: CommonCompilerArguments): Boolean {

@@ -9,16 +9,16 @@ import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult.*
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.backend.js.utils.NameTables
+import org.jetbrains.kotlin.ir.util.SymbolTable
 import kotlin.script.experimental.api.*
 
-class JsScriptCompiler(
-    environment: KotlinCoreEnvironment
-) : ScriptCompiler {
-    private val nameTables = NameTables(emptyList())
-    private val dependencies: List<ModuleDescriptor> = readLibrariesFromConfiguration(environment.configuration)
-    private val compiler = CoreScriptingJsCompiler(environment, nameTables, dependencies)
 
-    val scriptDependencyBinary = ScriptDependencyCompiler(environment, nameTables).compile(dependencies).first
+// `JsScriptCompiler` is used to compile .kts files
+class JsScriptCompiler(environment: KotlinCoreEnvironment) : ScriptCompiler {
+    val nameTables = NameTables(emptyList())
+    val symbolTable = SymbolTable()
+    val dependencies: List<ModuleDescriptor> = readLibrariesFromConfiguration(environment.configuration)
+    private val compiler = JsCoreScriptingCompiler(environment, nameTables, symbolTable, dependencies)
 
     override suspend fun invoke(
         script: SourceCode,
