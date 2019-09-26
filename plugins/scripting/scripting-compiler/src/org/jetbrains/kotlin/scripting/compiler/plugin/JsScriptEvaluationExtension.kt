@@ -60,8 +60,12 @@ class JsScriptEvaluationExtension : AbstractScriptEvaluationExtension() {
     }
 
     private var environment: KotlinCoreEnvironment? = null
+    private var dependencyJsCode: String? = null
     private val scriptCompiler: JsScriptCompiler by lazy {
-        JsScriptCompiler(environment!!)
+        val env = environment ?: error("Expected environment is initialized prior to compiler instantiation")
+        JsScriptCompiler(env).apply {
+            dependencyJsCode = JsScriptDependencyCompiler(env.configuration, nameTables, symbolTable).compile(dependencies)
+        }
     }
 
     override suspend fun compilerInvoke(
@@ -69,20 +73,22 @@ class JsScriptEvaluationExtension : AbstractScriptEvaluationExtension() {
         script: SourceCode,
         scriptCompilationConfiguration: ScriptCompilationConfiguration
     ): ResultWithDiagnostics<CompiledScript<*>> {
+
         this.environment = environment
-        return scriptCompiler.invoke(script, scriptCompilationConfiguration)
+
+        return scriptCompiler.invoke(script, scriptCompilationConfiguration).onSuccess {
+            val compiledResult = it as CompiledToJsScript
+            val actualResult = dependencyJsCode?.let { d ->
+                dependencyJsCode = null
+                CompiledToJsScript(d + "\n" + compiledResult.jsCode, compiledResult.compilationConfiguration)
+            } ?: compiledResult
+
+            ResultWithDiagnostics.Success(actualResult)
+        }
     }
 
-    override suspend fun preprocessEvaluation(
-        scriptEvaluator: ScriptEvaluator,
-        scriptCompilationConfiguration: ScriptCompilationConfiguration,
-        evaluationConfiguration: ScriptEvaluationConfiguration
-    ) {
-        // Load close-world dependencies into evaluating engine
-        val dependencyCompiler =
-            JsScriptDependencyCompiler(environment!!.configuration, scriptCompiler.nameTables, scriptCompiler.symbolTable)
-        val dependencyJsCode = dependencyCompiler.compile(scriptCompiler.dependencies)
-        scriptEvaluator.invoke(CompiledToJsScript(dependencyJsCode, scriptCompilationConfiguration), evaluationConfiguration)
+    override fun ScriptEvaluationConfiguration.Builder.platformEvaluationConfiguration() {
+
     }
 
     override fun isAccepted(arguments: CommonCompilerArguments): Boolean {
