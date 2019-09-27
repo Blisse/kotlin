@@ -115,11 +115,11 @@ public class OverridingUtil {
                 Pair<CallableDescriptor, CallableDescriptor> meAndOther = transformFirst.invoke(meD, otherD);
                 CallableDescriptor me = meAndOther.component1();
                 CallableDescriptor other = meAndOther.component2();
-                if (overrides(me, other)) {
-                    iterator.remove();
-                }
-                else if (overrides(other, me)) {
+                if (overrides(other, me)) {
                     continue outerLoop;
+                }
+                else if (overrides(me, other)) {
+                    iterator.remove();
                 }
             }
             result.add(meD);
