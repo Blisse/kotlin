@@ -304,10 +304,12 @@ internal class ImportFix(expression: KtSimpleNameExpression) : OrdinaryImportFix
         }
 
         val processor = { descriptor: CallableDescriptor ->
-            if (descriptor.canBeReferencedViaImport() && filterByCallType(descriptor)
-                && descriptor.isValidByReceiversFor(explicitReceiverType, actualReceiverTypes, checkDispatchReceiver)
-            ) {
-                result.add(descriptor)
+            if (descriptor.canBeReferencedViaImport() && filterByCallType(descriptor)) {
+                if (descriptor.extensionReceiverParameter != null) {
+                    result.addAll(descriptor.substituteExtensionIfCallable(actualReceiverTypes, callTypeAndReceiver.callType))
+                } else if (descriptor.isValidByReceiversFor(explicitReceiverType, actualReceiverTypes, checkDispatchReceiver)) {
+                    result.add(descriptor)
+                }
             }
         }
 
@@ -353,6 +355,10 @@ internal class ImportFix(expression: KtSimpleNameExpression) : OrdinaryImportFix
     }
 
     /**
+     * This methods accepts only callables with no extension receiver because it ignores generics
+     * and does not perform any substitution.
+     *
+
      * Checks that:
      *
      * 1. [this] descriptor receivers are satisfied;
@@ -367,18 +373,16 @@ internal class ImportFix(expression: KtSimpleNameExpression) : OrdinaryImportFix
         allReceiverTypes: Collection<KotlinType>,
         checkDispatchReceiver: Boolean
     ): Boolean {
-        val bothReceivers = listOfNotNull(extensionReceiverParameter, dispatchReceiverParameter.takeIf { checkDispatchReceiver })
+        require(extensionReceiverParameter == null) { "This method works only on non-extension callables, got $this" }
 
-        if (explicitReceiverType != null && bothReceivers.isEmpty()) return false
+        val dispatcherReceiver = dispatchReceiverParameter.takeIf { checkDispatchReceiver }
 
-        val receiverTypesPerReceiver = listOf(
-            explicitReceiverType?.let(::listOf) ?: allReceiverTypes,
-            allReceiverTypes
-        )
-
-        return bothReceivers
-            .zip(receiverTypesPerReceiver)
-            .all { (receiver, possibleTypes) -> possibleTypes.any { it.isSubtypeOf(receiver.type) } }
+        return if (dispatcherReceiver == null) {
+            explicitReceiverType != null
+        } else {
+            val typesToCheck = explicitReceiverType?.let(::listOf) ?: allReceiverTypes
+            typesToCheck.any { it.isSubtypeOf(dispatcherReceiver.type) }
+        }
     }
 
     override fun fillCandidates(
