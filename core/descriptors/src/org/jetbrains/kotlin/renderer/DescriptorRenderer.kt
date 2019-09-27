@@ -143,7 +143,10 @@ abstract class DescriptorRenderer {
 
         @JvmField
         val FQ_NAMES_IN_TYPES: DescriptorRenderer = withOptions {
-            modifiers = DescriptorRendererModifier.DEFAULTS
+            modifiers = DescriptorRendererModifier.ALL
+            annotationFilter = { annotationDescriptor ->
+                IncludedAnnotations.nullabilityWhitelist.contains(annotationDescriptor.fqName)
+            }
         }
 
         @JvmField
@@ -261,6 +264,13 @@ object ExcludedTypeAnnotations {
     )
 }
 
+object IncludedAnnotations {
+    val nullabilityWhitelist = setOf(
+         FqName("org.jetbrains.annotations.NotNull"),
+         FqName("org.jetbrains.annotations.Nullable")
+    )
+}
+
 enum class RenderingFormat {
     PLAIN {
         override fun escape(string: String) = string
@@ -307,7 +317,7 @@ enum class DescriptorRendererModifier(val includeByDefault: Boolean) {
 
     companion object {
         @JvmField
-        val DEFAULTS = values().filter { it.includeByDefault }.toSet()
+        val ALL_EXCEPT_ANNOTATIONS = values().filter { it.includeByDefault }.toSet()
 
         @JvmField
         val ALL = values().toSet()

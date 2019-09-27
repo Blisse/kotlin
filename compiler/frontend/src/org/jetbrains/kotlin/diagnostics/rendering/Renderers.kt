@@ -162,7 +162,7 @@ object Renderers {
     })
 
     @JvmField
-    val TYPE_PROJECTION = Renderer<TypeProjection> {projection ->
+    val TYPE_PROJECTION = Renderer<TypeProjection> { projection ->
         when {
             projection.isStarProjection -> "*"
             projection.projectionKind == Variance.INVARIANT ->

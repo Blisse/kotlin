@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.diagnostics.rendering.*
 import org.jetbrains.kotlin.idea.highlighter.renderersUtil.renderResolvedCall
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.DescriptorRendererModifier
+import org.jetbrains.kotlin.renderer.IncludedAnnotations
 import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.calls.inference.InferenceErrorData
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -39,7 +40,7 @@ object IdeRenderers {
 
     @JvmField val HTML_RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.HTML.withOptions {
         parameterNamesInFunctionalTypes = false
-        modifiers =  DescriptorRendererModifier.DEFAULTS
+        modifiers =  DescriptorRendererModifier.ALL_EXCEPT_ANNOTATIONS
     })
 
     @JvmField val HTML_NONE_APPLICABLE_CALLS = Renderer {
@@ -90,7 +91,10 @@ object IdeRenderers {
     }
 
     @JvmField val HTML = DescriptorRenderer.HTML.withOptions {
-        modifiers = DescriptorRendererModifier.DEFAULTS
+        modifiers = DescriptorRendererModifier.ALL
+        annotationFilter = { annotationDescriptor ->
+            IncludedAnnotations.nullabilityWhitelist.contains(annotationDescriptor.fqName)
+        }
     }.asRenderer()
     @JvmField val HTML_WITH_ANNOTATIONS = DescriptorRenderer.HTML.withOptions {
         modifiers = DescriptorRendererModifier.ALL

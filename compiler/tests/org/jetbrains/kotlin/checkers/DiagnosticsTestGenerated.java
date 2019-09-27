@@ -1487,6 +1487,11 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     runTest("compiler/testData/diagnostics/tests/annotations/rendering/typeMismatchOnOverride.kt");
                 }
 
+                @TestMetadata("typeMismatchOnOverrideJavaNullable.kt")
+                public void testTypeMismatchOnOverrideJavaNullable() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/annotations/rendering/typeMismatchOnOverrideJavaNullable.kt");
+                }
+
                 @TestMetadata("unusedValue.kt")
                 public void testUnusedValue() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/annotations/rendering/unusedValue.kt");
