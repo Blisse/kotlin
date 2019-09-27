@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.checker.requireOrDescribe
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
-import java.util.*
 
 open class OverloadingConflictResolver<C : Any>(
     private val builtIns: KotlinBuiltIns,
@@ -72,7 +71,7 @@ open class OverloadingConflictResolver<C : Any>(
         }
 
         val noEquivalentCalls = filterOutEquivalentCalls(fixedCandidates)
-        val noOverrides = OverridingUtil.filterOverrides(noEquivalentCalls) { a, b ->
+        val noOverrides = OverridingUtil.filterOverrides(fixedCandidates.toSet()) { a, b ->
             val aDescriptor = a.resultingDescriptor
             val bDescriptor = b.resultingDescriptor
             // Here we'd like to handle situation when we have two synthetic descriptors as in syntheticSAMExtensions.kt
