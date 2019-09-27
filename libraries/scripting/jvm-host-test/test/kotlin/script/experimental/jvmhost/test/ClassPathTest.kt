@@ -86,7 +86,7 @@ class ClassPathTest : TestCase() {
     fun testClasspathFromClass() {
         val cpFromThis = classpathFromClass(this::class)
         val expectedSuffix = "classes/kotlin/test"
-        assertTrue("Path should end with $expectedSuffix, got: $cpFromThis", cpFromThis!!.first().path.endsWith(expectedSuffix))
+        assertTrue("Path should end with $expectedSuffix, got: $cpFromThis", cpFromThis!!.first().absoluteFile.path.endsWith(expectedSuffix))
     }
 }
 
