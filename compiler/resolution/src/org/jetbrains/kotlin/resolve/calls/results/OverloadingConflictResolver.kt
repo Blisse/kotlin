@@ -71,7 +71,7 @@ open class OverloadingConflictResolver<C : Any>(
         }
 
         val noEquivalentCalls = filterOutEquivalentCalls(fixedCandidates)
-        val noOverrides = OverridingUtil.filterOverrides(fixedCandidates.toSet()) { a, b ->
+        val noOverrides = OverridingUtil.filterOverrides(fixedCandidates.sortedBy { if (isFromSources(it.resultingDescriptor)) 0 else 1 }.toSet()) { a, b ->
             val aDescriptor = a.resultingDescriptor
             val bDescriptor = b.resultingDescriptor
             // Here we'd like to handle situation when we have two synthetic descriptors as in syntheticSAMExtensions.kt
