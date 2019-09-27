@@ -552,6 +552,30 @@ abstract class InlineCodegen<out T : BaseExpressionCodegen>(
             return resultInCache.copyWithNewNode(cloneMethodNode(resultInCache.node))
         }
 
+        internal fun createSpecialInlineMethodNodeFromBinaries(functionDescriptor: FunctionDescriptor, state: GenerationState): MethodNode {
+            val directMember = getDirectMemberAndCallableFromObject(functionDescriptor)
+            assert(directMember is DescriptorWithContainerSource) {
+                "Function is not in binaries: $functionDescriptor"
+            }
+
+            val methodOwner = state.typeMapper.mapImplementationOwner(functionDescriptor)
+            val jvmSignature = state.typeMapper.mapSignatureWithGeneric(functionDescriptor, OwnerKind.IMPLEMENTATION)
+
+            val asmMethod = mangleSuspendInlineFunctionAsmMethodIfNeeded(functionDescriptor, jvmSignature.asmMethod)
+            val methodId = MethodId(methodOwner.internalName, asmMethod)
+
+            val resultInCache = state.inlineCache.methodNodeById.getOrPut(methodId) {
+                val result = doCreateMethodNodeFromCompiled(directMember, state, asmMethod)
+                    ?: if (functionDescriptor.isSuspend)
+                        doCreateMethodNodeFromCompiled(directMember, state, jvmSignature.asmMethod)
+                    else
+                        null
+                result ?: throw IllegalStateException("Couldn't obtain compiled function body for $functionDescriptor")
+            }
+
+            return resultInCache.copyWithNewNode(cloneMethodNode(resultInCache.node)).node
+        }
+
         private fun createDefaultFakeSMAP() = SMAPParser.parseOrCreateDefault(null, null, "fake", -1, -1)
 
         // For suspend inline functions we generate two methods:
