@@ -15,7 +15,6 @@ import java.io.File
 abstract class AbstractLiteralKotlinToKotlinCopyPasteTest : AbstractCopyPasteTest() {
     private val BASE_PATH = PluginTestCaseBase.getTestDataPathBase() + "/copyPaste/literal"
 
-
     override fun getTestDataPath() = BASE_PATH
 
     override fun getProjectDescriptor() = KotlinWithJdkAndRuntimeLightProjectDescriptor.INSTANCE

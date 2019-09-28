@@ -59,7 +59,8 @@ abstract class AbstractPerformanceCompletionHandlerTests(
         super.tearDown()
     }
 
-    protected open fun doPerfTest(testPath: String) {
+    protected open fun doPerfTest(x: String) {
+        val testPath = testPath()
         setUpFixture(testPath)
 
         val tempSettings = CodeStyle.getSettings(project).clone()
